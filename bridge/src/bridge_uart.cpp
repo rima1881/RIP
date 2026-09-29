@@ -2,37 +2,96 @@
 #include <bridge_uart.h>
 #include <cstdint>
 #include <boost/asio.hpp>
-#include <array>
-
-struct Message{
-    uint8_t sync = 0xAA;
-    uint8_t seq;
-    uint8_t* data;
-    uint8_t data_len;
-    uint8_t crc;
-};
 
 bool is_connected = false;
 uint8_t seq = 0;
 boost::asio::serial_port* port;
 
-uint8_t send(uint8_t* data, uint8_t len) {
+uint8_t bridge_init(const char* port_name){
 
-    return 0;
+    try{
+        if (is_connected) {
+            throw BRIDGEERROR::IsAlreadyConnected;
+        }
+
+        boost::asio::io_context io;
+        port = new boost::asio::serial_port(io, port_name);
+
+        port->set_option(boost::asio::serial_port_base::baud_rate(BAUD_RATE));
+        port->set_option(boost::asio::serial_port_base::character_size(CHARACTER_SIZE));
+        port->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
+        port->set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
+        port->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
+
+        uint8_t hello = HELLO;
+        boost::asio::write(*port, boost::asio::buffer(&hello, sizeof(hello)));
+
+        uint8_t response;
+        boost::asio::read(*port, boost::asio::buffer(&response, sizeof(response)));
+
+        if (response != HELLO_RESPONSE) {
+            throw BRIDGEERROR::HelloRejected;
+        }
+
+    } catch (const boost::system::system_error&) {
+        if (port != nullptr) {
+            delete port;
+            port = nullptr;
+        }
+        is_connected = false;
+
+        return static_cast<uint8_t>(BRIDGEERROR::PortIsClosed);
+    } catch (BRIDGEERROR e) {
+        if (port != nullptr) {
+            delete port;
+            port = nullptr;
+        }
+        is_connected = false;
+        return static_cast<uint8_t>(e);
+    }
+
+    is_connected = true;
+    seq = 0;
+    return CONNECTED;
 }
 
-uint8_t bridge_init(const char* port_name, uint32_t baud){
+uint8_t bridge_hello(uint8_t code){
 
+    try{
+        if (!is_connected) {
+            throw BRIDGEERROR::Disconnected;
+        }
 
-    boost::asio::io_context io;
-    port = new boost::asio::serial_port(io, "/dev/ttyUSB0"); // TODO: change it to input
+        // unexpected
+        if (port == nullptr) {
+            throw BRIDGEERROR::UnexpectedError;
+        }
 
-    std::array<uint8_t, 5> payload;
+        boost::asio::write(*port, boost::asio::buffer(&code, sizeof(code)));
+        uint8_t response;
+        boost::asio::read(*port, boost::asio::buffer(&response, sizeof(response)));
 
-
-
-
-    return 0;
+        // TODO: disconnect
+        if (response != HELLO_RESPONSE) {
+            throw  BRIDGEERROR::HelloRejected;
+        }
+    } catch (const boost::system::system_error&) {
+        if (port != nullptr) {
+            delete port;
+            port = nullptr;
+        }
+        is_connected = false;
+        return static_cast<uint8_t>(BRIDGEERROR::ConnectionFaild);
+    } catch (BRIDGEERROR e) {
+        if (port != nullptr) {
+            delete port;
+            port = nullptr;
+        }
+        is_connected = false;
+        return static_cast<uint8_t>(e);
+    }
+    seq = 0;
+    return CONNECTED;
 }
 
 uint8_t bridge_step(
@@ -42,24 +101,32 @@ uint8_t bridge_step(
     float* theta1_dot,
     float* theta2_dot){
 
-    if (!is_connected) {
-        return 1;
+
+    try{
+        if (!is_connected) {
+            throw BRIDGEERROR::Disconnected;
+        }
+
+        if (port == nullptr){
+            throw BRIDGEERROR::UnexpectedError;
+        }
+    } catch(BRIDGEERROR e) {
+        if (port != nullptr) {
+            delete port;
+            port = nullptr;
+        }
+
+        return static_cast<uint8_t>(e);
     }
 
-    return 0;
-}
 
-uint8_t brige_hello(int* code){
-    if (!is_connected) {
-        return 1;
-    }
 
     return 0;
 }
 
 uint8_t bridge_terminate(void){
     if(!is_connected) {
-        return 1;
+        return DISCONNECTED;
     }
 
     return 0;
