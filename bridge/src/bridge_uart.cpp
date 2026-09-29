@@ -7,7 +7,7 @@ bool is_connected = false;
 uint8_t seq = 0;
 boost::asio::serial_port* port;
 
-uint8_t bridge_init(const char* port_name){
+uint8_t bridge_init(const char* port_name, int baud){
 
     try{
         if (is_connected) {
@@ -17,7 +17,7 @@ uint8_t bridge_init(const char* port_name){
         boost::asio::io_context io;
         port = new boost::asio::serial_port(io, port_name);
 
-        port->set_option(boost::asio::serial_port_base::baud_rate(BAUD_RATE));
+        port->set_option(boost::asio::serial_port_base::baud_rate(baud));
         port->set_option(boost::asio::serial_port_base::character_size(CHARACTER_SIZE));
         port->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
         port->set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
