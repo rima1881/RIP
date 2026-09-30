@@ -8,7 +8,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Boost REQUIRED)
 
 # Lib
-add_library(bridge_uart SHARED src/bridge_uart.cpp)
+add_library(bridge_uart SHARED src/bridge_serial.cpp)
 
 target_include_directories(bridge_uart PRIVATE include ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(bridge_uart PRIVATE Boost::headers pthread)
