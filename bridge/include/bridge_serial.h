@@ -7,22 +7,14 @@
 #define HELLO 80
 #define HELLO_RESPONSE 88
 
-// ERRORS
-#define DISCONNECTED 255
-#define UNEXPECTED_ERROR 254
-#define PORT_IS_CLOSED 253
-#define IS_ALREADY_CONNECTED 252
-#define HELLO_REJECTED 251
-#define CONNECTION_FAILED 250
-
-
 enum class BRIDGEERROR {
     Disconnected = 255,
     UnexpectedError = 254,
     PortIsClosed = 253,
     IsAlreadyConnected = 252,
     ConnectionFaild = 251,
-    HelloRejected = 250
+    HelloRejected = 250,
+    FailedDisconnect = 249,
 };
 
 // SUCCESS

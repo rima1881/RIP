@@ -81,7 +81,6 @@ uint8_t bridge_hello(uint8_t code){
         uint8_t response;
         boost::asio::read(*port, boost::asio::buffer(&response, sizeof(response)));
 
-        // TODO: disconnect
         if (response != HELLO_RESPONSE) {
             throw  BRIDGEERROR::HelloRejected;
         }
@@ -111,12 +110,10 @@ uint8_t bridge_step(
     float* theta1_dot,
     float* theta2_dot){
 
-
     try{
         if (!is_connected) {
             throw BRIDGEERROR::Disconnected;
         }
-
         if (port == nullptr){
             throw BRIDGEERROR::UnexpectedError;
         }
@@ -147,7 +144,6 @@ uint8_t bridge_step(
         std::memcpy(theta2_dot, &rx[14], sizeof(float));
 
         seq++;
-
     } catch (const boost::system::system_error&) {
         if (port != nullptr) {
             delete port;
@@ -171,16 +167,18 @@ uint8_t bridge_terminate(void){
     if (!is_connected) {
         return static_cast<uint8_t>(BRIDGEERROR::Disconnected);
     }
-
-    if (port != nullptr) {
-        boost::system::error_code ec;
-        port->close(ec);
-        delete port;
-        port = nullptr;
+    try{
+        if (port != nullptr) {
+            port->close();
+            delete port;
+            port = nullptr;
+        }
+    } catch (const boost::system::system_error&) {
+        return static_cast<uint8_t>(BRIDGEERROR::FailedDisconnect);
     }
 
     is_connected = false;
     seq = 0;
 
-    return CONNECTED;
+    return static_cast<uint8_t>(BRIDGEERROR::Disconnected);
 }
