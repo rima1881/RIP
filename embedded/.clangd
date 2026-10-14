@@ -1,0 +1,18 @@
+CompileFlags:
+  CompilationDatabase: build/
+  Add:
+    - --target=xtensa-esp-elf
+    - --gcc-toolchain=/home/amir/.espressif/tools/xtensa-esp-elf/esp-14.2.0_20260121/xtensa-esp-elf
+    - --sysroot=/home/amir/.espressif/tools/xtensa-esp-elf/esp-14.2.0_20260121/xtensa-esp-elf
+    - -isystem
+    - /home/amir/.espressif/tools/xtensa-esp-elf/esp-14.2.0_20260121/xtensa-esp-elf/xtensa-esp-elf/include/c++/14.2.0
+    - -idirafter
+    - /home/amir/.espressif/tools/xtensa-esp-elf/esp-14.2.0_20260121/xtensa-esp-elf/xtensa-esp-elf/include/c++/14.2.0/xtensa-esp-elf
+    - -idirafter
+    - /home/amir/.espressif/tools/xtensa-esp-elf/esp-14.2.0_20260121/xtensa-esp-elf/xtensa-esp-elf/include
+  Remove:
+    - -mno-*
+    - -mlongcalls
+    - -fno-tree-switch-conversion
+    - -fstrict-volatile-bitfields
+    - -fno-shrink-wrap
